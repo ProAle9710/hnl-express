@@ -17,6 +17,6 @@ export async function exportReceipt(html: string): Promise<void> {
   await Sharing.shareAsync(file.uri, {
     mimeType: "application/pdf",
     UTI: "com.adobe.pdf",
-    dialogTitle: "Comprobante HN Express",
+    dialogTitle: "Comprobante HN Xpress",
   });
 }

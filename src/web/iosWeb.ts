@@ -76,12 +76,12 @@ export function openReceiptPrint(html: string): void {
 }
 
 export function configureIosWebDocument(): void {
-  document.title = "HNL-EXPRESS";
+  document.title = "HNL XPRESS";
   const meta = document.querySelector('meta[name="viewport"]');
   if (meta) {
     meta.setAttribute(
       "content",
-      "width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content",
+      "width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=overlays-content",
     );
   }
   const style = document.createElement("style");

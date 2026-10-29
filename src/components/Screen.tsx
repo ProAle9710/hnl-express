@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { WaveBackdrop } from "@/components/WaveBackdrop";
 import { hig, type } from "@/theme";
 
 type Props = {
@@ -15,6 +16,7 @@ export function Screen({ title, subtitle, includeTopInset = true, children }: Pr
   const insets = useSafeAreaInsets();
   return (
     <View style={styles.root}>
+      <WaveBackdrop />
     <View style={[styles.frame, { paddingTop: includeTopInset ? insets.top + 8 : 8 }]}>
       {title ? (
         <Text style={styles.title} accessibilityRole="header">
@@ -31,14 +33,13 @@ export function Screen({ title, subtitle, includeTopInset = true, children }: Pr
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: hig.grouped,
+    backgroundColor: "#FFFFFF",
     alignItems: "center",
   },
   frame: {
     flex: 1,
     width: "100%",
     maxWidth: 960,
-    backgroundColor: hig.grouped,
   },
   title: {
     ...type.largeTitle,
@@ -51,7 +52,12 @@ const styles = StyleSheet.create({
   },
   body: {
     flex: 1,
-    paddingHorizontal: hig.margin,
+    marginHorizontal: 12,
+    marginBottom: 12,
+    marginTop: 12,
+    paddingHorizontal: 16,
     paddingTop: 16,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 28,
   },
 });

@@ -32,7 +32,7 @@ export function receiptHtml(draft: ReceiptDraft, issuedAt: Date): string {
 </head>
 <body>
   <article class="sheet">
-    <div class="brand">HN <span class="mark">Express</span></div>
+    <div class="brand">HN <span class="mark">Xpress</span></div>
     <div class="muted">Comprobante de operación</div>
     <div class="amount">${escapeHtml(draft.amount)} ${escapeHtml(draft.currency)}</div>
     <table>

@@ -38,9 +38,9 @@ function ReceiptStack() {
       screenOptions={{
         headerTintColor: hig.blue,
         headerTitleStyle: { fontFamily: hig.font, fontSize: 17, fontWeight: "600" },
-        headerStyle: { backgroundColor: hig.grouped },
+        headerStyle: { backgroundColor: "#FFFFFF" },
         headerShadowVisible: false,
-        contentStyle: { backgroundColor: hig.grouped },
+        contentStyle: { backgroundColor: "#FFFFFF" },
       }}
     >
       <Stack.Screen name="Captura" component={CaptureScreen} options={{ headerShown: false }} />
@@ -74,10 +74,10 @@ export function RootNavigator() {
       <Tab.Navigator
         screenOptions={{
           headerShown: false,
-          tabBarActiveTintColor: hig.blue,
+          tabBarActiveTintColor: hig.navy,
           tabBarInactiveTintColor: hig.secondary,
           tabBarStyle: {
-            backgroundColor: "rgba(249,249,249,0.94)",
+            backgroundColor: "#FFFFFF",
             borderTopColor: hig.separator,
             minHeight: 49,
           },

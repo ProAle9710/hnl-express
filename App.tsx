@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import { Platform } from "react-native";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 import { PaperProvider } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
@@ -16,6 +17,7 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
+      <KeyboardProvider>
       <PaperProvider
         settings={{
           icon: ({ name, color, size }) => (
@@ -28,6 +30,7 @@ export default function App() {
           <RootNavigator />
         </SessionProvider>
       </PaperProvider>
+      </KeyboardProvider>
     </SafeAreaProvider>
   );
 }

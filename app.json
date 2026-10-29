@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "HNL-EXPRESS",
+    "name": "HNL XPRESS",
     "slug": "hnl",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -9,8 +9,8 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSCameraUsageDescription": "HN Express usa la cámara para fotografiar el comprobante.",
-        "NSPhotoLibraryUsageDescription": "HN Express lee una foto del comprobante desde la galería."
+        "NSCameraUsageDescription": "HNL Xpress usa la cámara para fotografiar el comprobante.",
+        "NSPhotoLibraryUsageDescription": "HNL Xpress lee una foto del comprobante desde la galería."
       }
     },
     "android": {
@@ -34,8 +34,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "HN Express lee una foto del comprobante desde la galería.",
-          "cameraPermission": "HN Express usa la cámara para fotografiar el comprobante."
+          "photosPermission": "HNL Xpress lee una foto del comprobante desde la galería.",
+          "cameraPermission": "HNL Xpress usa la cámara para fotografiar el comprobante."
         }
       ],
       "expo-sharing"

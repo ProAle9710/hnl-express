@@ -1,13 +1,15 @@
 import { Platform, type TextStyle, type ViewStyle } from "react-native";
 
 export const hig = {
-  blue: "#007AFF",
-  green: "#34C759",
-  red: "#FF3B30",
-  orange: "#FF9500",
-  grouped: "#F2F2F7",
+  navy: "#1B2744",
+  blue: "#1E4E9E",
+  yellow: "#F5C400",
+  green: "#1E4E9E",
+  red: "#E10600",
+  orange: "#F5C400",
+  grouped: "#EEF3F8",
   cell: "#FFFFFF",
-  label: "#000000",
+  label: "#1B2744",
   secondary: "rgba(60, 60, 67, 0.6)",
   tertiary: "rgba(60, 60, 67, 0.3)",
   separator: "rgba(60, 60, 67, 0.29)",
