@@ -1,13 +1,17 @@
 {
   "expo": {
-    "name": "hnl",
+    "name": "HNL-EXPRESS",
     "slug": "hnl",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "HN Express usa la cámara para fotografiar el comprobante.",
+        "NSPhotoLibraryUsageDescription": "HN Express lee una foto del comprobante desde la galería."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -16,10 +20,25 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": ["CAMERA", "READ_MEDIA_IMAGES"]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "favicon": "./assets/favicon.png",
+      "output": "single"
+    },
+    "experiments": {
+      "tsconfigPaths": true
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "HN Express lee una foto del comprobante desde la galería.",
+          "cameraPermission": "HN Express usa la cámara para fotografiar el comprobante."
+        }
+      ],
+      "expo-sharing"
+    ]
   }
 }
