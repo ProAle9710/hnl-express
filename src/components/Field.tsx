@@ -10,6 +10,7 @@ type Props = {
   keyboardType?: "default" | "decimal-pad";
   autoCapitalize?: "none" | "characters" | "words";
   placeholder?: string;
+  secureTextEntry?: boolean;
 };
 
 export function Field({
@@ -20,6 +21,7 @@ export function Field({
   keyboardType = "default",
   autoCapitalize = "none",
   placeholder,
+  secureTextEntry,
 }: Props) {
   return (
     <View style={styles.wrap}>
@@ -30,6 +32,7 @@ export function Field({
         keyboardType={keyboardType}
         autoCapitalize={autoCapitalize}
         autoCorrect={false}
+        secureTextEntry={secureTextEntry}
         placeholder={placeholder}
         placeholderTextColor={hig.tertiary}
         style={[styles.input, error ? styles.inputError : null]}

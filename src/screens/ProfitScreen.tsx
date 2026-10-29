@@ -2,17 +2,20 @@ import { useEffect, useMemo, useState } from "react";
 import { Alert, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 
+import { useSession } from "@/auth/session";
 import { Button } from "@/components/Button";
+import { ClientSelect } from "@/components/ClientSelect";
 import { Field } from "@/components/Field";
 import { Screen } from "@/components/Screen";
+import { createTransaction } from "@/data/records";
 import { formatUsd, parseAmount, roundMoney } from "@/money";
 import type { TabParamList } from "@/navigation/types";
-import { saveEntry } from "@/storage/ledger";
 import { hig, type } from "@/theme";
 
 type Props = BottomTabScreenProps<TabParamList, "Ganancias">;
 
 export function ProfitScreen({ route, navigation }: Props) {
+  const { clientId, setClientId } = useSession();
   const prefill = route.params;
   const [charged, setCharged] = useState(prefill?.charged ?? "");
   const [cost, setCost] = useState("");
@@ -51,6 +54,7 @@ export function ProfitScreen({ route, navigation }: Props) {
   }, [chargedValue, costValue, rateValue]);
 
   const ready =
+    clientId != null &&
     chargedValue != null &&
     costValue != null &&
     /^[A-Z]{3}$/.test(code) &&
@@ -58,22 +62,24 @@ export function ProfitScreen({ route, navigation }: Props) {
     rateValue > 0;
 
   async function persist() {
-    if (!ready || chargedValue == null || costValue == null || rateValue == null || profit == null) {
+    if (!ready || !clientId || chargedValue == null || costValue == null || rateValue == null || profit == null) {
       return;
     }
     setBusy(true);
     try {
-      await saveEntry({
-        id: `${Date.now()}-${transactionId.trim() || "op"}`,
-        createdAt: new Date().toISOString(),
+      await createTransaction({
+        clientId,
+        kind: "profit",
+        destinationAccount: "",
+        amount: String(chargedValue),
+        currency: code,
+        transactionId: transactionId.trim(),
         charged: chargedValue,
         cost: costValue,
-        currency: code,
         usdRate: rateValue,
         profitUsd: profit,
-        transactionId: transactionId.trim(),
       });
-      setMessage("Operación guardada en este dispositivo.");
+      setMessage("Operación guardada en Firebase.");
       setCost("");
       navigation.navigate("Jornada");
     } catch (error) {
@@ -88,6 +94,7 @@ export function ProfitScreen({ route, navigation }: Props) {
   return (
     <Screen title="Ganancias" subtitle="Cobrado menos costo, expresado en USD.">
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        <ClientSelect clientId={clientId} onChange={setClientId} />
         <View style={styles.card}>
           <Field
             label="Cobrado al cliente"

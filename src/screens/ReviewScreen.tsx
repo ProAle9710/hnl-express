@@ -4,9 +4,12 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { useNavigation } from "@react-navigation/native";
 
+import { useSession } from "@/auth/session";
 import { Button } from "@/components/Button";
+import { ClientSelect } from "@/components/ClientSelect";
 import { Field } from "@/components/Field";
 import { Screen } from "@/components/Screen";
+import { createTransaction } from "@/data/records";
 import { parseAmount } from "@/money";
 import type { ReceiptStackParamList, TabParamList } from "@/navigation/types";
 import { exportReceipt } from "@/receipt/exportReceipt";
@@ -25,6 +28,7 @@ const empty: ReceiptDraft = {
 };
 
 export function ReviewScreen({ route }: Props) {
+  const { clientId, setClientId } = useSession();
   const tabNavigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
   const [draft, setDraft] = useState<ReceiptDraft>(empty);
   const [status, setStatus] = useState("Leyendo comprobante…");
@@ -62,7 +66,7 @@ export function ReviewScreen({ route }: Props) {
     };
   }, [draft]);
 
-  const valid = Object.values(errors).every((item) => item === "");
+  const valid = Object.values(errors).every((item) => item === "") && clientId != null;
 
   function patch(partial: Partial<ReceiptDraft>) {
     setDraft((current) => ({ ...current, ...partial }));
@@ -79,6 +83,19 @@ export function ReviewScreen({ route }: Props) {
       transactionId: draft.transactionId.trim(),
     };
     try {
+      if (!clientId) return;
+      await createTransaction({
+        clientId,
+        kind: "receipt",
+        destinationAccount: normalized.destinationAccount,
+        amount: normalized.amount,
+        currency: normalized.currency,
+        transactionId: normalized.transactionId,
+        charged: null,
+        cost: null,
+        usdRate: null,
+        profitUsd: null,
+      });
       await exportReceipt(receiptHtml(normalized, new Date()));
       tabNavigation.navigate("Ganancias", {
         charged: normalized.amount,
@@ -97,6 +114,7 @@ export function ReviewScreen({ route }: Props) {
   return (
     <Screen includeTopInset={false} subtitle={status}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        <ClientSelect clientId={clientId} onChange={setClientId} />
         <View style={styles.card}>
           <Field
             label="Cuenta destino"

@@ -7,6 +7,7 @@ export type ReceiptStackParamList = {
 };
 
 export type TabParamList = {
+  Clientes: undefined;
   Comprobante: undefined;
   Ganancias: {
     charged?: string;

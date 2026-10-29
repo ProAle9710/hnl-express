@@ -3,12 +3,19 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
+import { useSession } from "@/auth/session";
 import type { ReceiptStackParamList, TabParamList } from "@/navigation/types";
 import { CaptureScreen } from "@/screens/CaptureScreen";
+import { ClientsScreen } from "@/screens/ClientsScreen";
 import { DayScreen } from "@/screens/DayScreen";
+import { LoginScreen } from "@/screens/LoginScreen";
 import { ProfitScreen } from "@/screens/ProfitScreen";
 import { ReviewScreen } from "@/screens/ReviewScreen";
 import { hig } from "@/theme";
+import { ActivityIndicator, Text, View } from "react-native";
+import { signOut } from "firebase/auth";
+import { auth } from "@/firebase/client";
+import { Button } from "@/components/Button";
 
 const Stack = createNativeStackNavigator<ReceiptStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -43,6 +50,25 @@ function ReceiptStack() {
 }
 
 export function RootNavigator() {
+  const { ready, user, staff, error } = useSession();
+  if (!ready) {
+    return (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: hig.grouped }}>
+        <ActivityIndicator />
+      </View>
+    );
+  }
+  if (!user) return <LoginScreen />;
+  if (!staff) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", padding: 24, backgroundColor: hig.grouped }}>
+        <Text style={{ color: hig.label, fontSize: 17, marginBottom: 12 }}>
+          {error || "Este usuario no está habilitado."}
+        </Text>
+        <Button label="Salir" onPress={() => void signOut(auth)} />
+      </View>
+    );
+  }
   return (
     <NavigationContainer theme={navTheme}>
       <Tab.Navigator
@@ -58,6 +84,13 @@ export function RootNavigator() {
           tabBarLabelStyle: { fontFamily: hig.font, fontSize: 10 },
         }}
       >
+        <Tab.Screen
+          name="Clientes"
+          component={ClientsScreen}
+          options={{
+            tabBarIcon: ({ color, size }) => <Ionicons name="people-outline" color={color} size={size} />,
+          }}
+        />
         <Tab.Screen
           name="Comprobante"
           component={ReceiptStack}

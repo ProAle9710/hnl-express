@@ -14,15 +14,18 @@
     "expo-print": "~58.0.8",
     "expo-sharing": "~58.0.21",
     "expo-status-bar": "~58.0.4",
+    "firebase": "^13.1.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-native": "0.88.1",
+    "react-native-paper": "^5.15.3",
     "react-native-safe-area-context": "~5.10.1",
     "react-native-screens": "~4.30.0",
     "react-native-web": "^0.21.4"
   },
   "devDependencies": {
     "@types/react": "~19.3.0",
+    "firebase-admin": "^14.5.0",
     "typescript": "~6.0.3"
   },
   "scripts": {
@@ -32,6 +35,8 @@
     "web": "expo start --web",
     "export:web": "expo export --platform web",
     "typecheck": "tsc --noEmit",
+    "staff": "node scripts/grant-staff.mjs",
+    "bff": "node server/index.mjs",
     "deploy": "powershell -ExecutionPolicy Bypass -File scripts/deploy.ps1"
   },
   "private": true

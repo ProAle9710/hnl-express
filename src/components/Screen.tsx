@@ -14,7 +14,8 @@ type Props = {
 export function Screen({ title, subtitle, includeTopInset = true, children }: Props) {
   const insets = useSafeAreaInsets();
   return (
-    <View style={[styles.root, { paddingTop: includeTopInset ? insets.top + 8 : 8 }]}>
+    <View style={styles.root}>
+    <View style={[styles.frame, { paddingTop: includeTopInset ? insets.top + 8 : 8 }]}>
       {title ? (
         <Text style={styles.title} accessibilityRole="header">
           {title}
@@ -23,12 +24,20 @@ export function Screen({ title, subtitle, includeTopInset = true, children }: Pr
       {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
       <View style={styles.body}>{children}</View>
     </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    backgroundColor: hig.grouped,
+    alignItems: "center",
+  },
+  frame: {
+    flex: 1,
+    width: "100%",
+    maxWidth: 960,
     backgroundColor: hig.grouped,
   },
   title: {

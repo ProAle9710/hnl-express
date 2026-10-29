@@ -1,6 +1,4 @@
 asdf-883-qwez.duckdns.org {
 	encode gzip zstd
-	root * /var/www/hnl
-	try_files {path} /index.html
-	file_server
+	reverse_proxy 127.0.0.1:8787
 }
