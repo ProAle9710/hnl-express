@@ -11,6 +11,16 @@ import { Field } from "@/components/Field";
 import { Screen } from "@/components/Screen";
 import { createTransaction } from "@/data/records";
 import { parseAmount } from "@/money";
+import {
+  accountError,
+  amountError,
+  currencyError,
+  idError,
+  keepAccount,
+  keepCurrency,
+  keepId,
+  keepMoney,
+} from "@/data/validate";
 import type { ReceiptStackParamList, TabParamList } from "@/navigation/types";
 import { exportReceipt } from "@/receipt/exportReceipt";
 import { receiptHtml } from "@/receipt/template";
@@ -59,10 +69,10 @@ export function ReviewScreen({ route }: Props) {
 
   const errors = useMemo(() => {
     return {
-      destinationAccount: draft.destinationAccount.trim() ? "" : "Indica la cuenta destino.",
-      amount: parseAmount(draft.amount) == null ? "Monto con hasta 2 decimales." : "",
-      currency: /^[A-Z]{3}$/.test(draft.currency.trim().toUpperCase()) ? "" : "Código de 3 letras.",
-      transactionId: draft.transactionId.trim() ? "" : "Indica el ID.",
+      destinationAccount: accountError(draft.destinationAccount),
+      amount: amountError(draft.amount),
+      currency: currencyError(draft.currency),
+      transactionId: idError(draft.transactionId, true),
     };
   }, [draft]);
 
@@ -100,6 +110,7 @@ export function ReviewScreen({ route }: Props) {
         unitCostCurrency: "",
         volumeBand: "",
         tag: "",
+        operaciones: [],
       });
       await exportReceipt(receiptHtml(normalized, new Date()));
       tabNavigation.navigate("Ganancias", {
@@ -124,6 +135,7 @@ export function ReviewScreen({ route }: Props) {
           label="Cuenta destino"
           value={draft.destinationAccount}
           onChangeText={(destinationAccount) => patch({ destinationAccount })}
+          filter={keepAccount}
           error={draft.destinationAccount ? errors.destinationAccount : ""}
         />
         <View style={styles.pair}>
@@ -133,6 +145,7 @@ export function ReviewScreen({ route }: Props) {
               value={draft.amount}
               keyboardType="decimal-pad"
               onChangeText={(amount) => patch({ amount })}
+              filter={keepMoney}
               error={draft.amount ? errors.amount : ""}
             />
           </View>
@@ -141,7 +154,8 @@ export function ReviewScreen({ route }: Props) {
               label="Moneda"
               value={draft.currency}
               autoCapitalize="characters"
-              onChangeText={(currency) => patch({ currency: currency.toUpperCase() })}
+              onChangeText={(currency) => patch({ currency })}
+              filter={keepCurrency}
               error={draft.currency ? errors.currency : ""}
             />
           </View>
@@ -150,10 +164,11 @@ export function ReviewScreen({ route }: Props) {
           label="ID"
           value={draft.transactionId}
           onChangeText={(transactionId) => patch({ transactionId })}
+          filter={keepId}
           error={draft.transactionId ? errors.transactionId : ""}
         />
         {!valid ? <Text style={styles.note}>Completa los datos para emitir.</Text> : null}
-        <Button label="Generar y compartir" disabled={!valid || busy} onPress={() => void publish()} />
+        <Button label="Generar y compartir" disabled={!valid || busy} loading={busy} onPress={() => void publish()} />
       </ScrollView>
     </Screen>
   );

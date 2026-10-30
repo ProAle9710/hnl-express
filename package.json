@@ -1,6 +1,6 @@
 {
   "name": "hnl",
-  "version": "1.0.0",
+  "version": "1.2.1",
   "main": "index.ts",
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
@@ -40,7 +40,8 @@
     "typecheck": "tsc --noEmit",
     "staff": "node scripts/grant-staff.mjs",
     "bff": "node server/index.mjs",
-    "deploy": "powershell -ExecutionPolicy Bypass -File scripts/deploy.ps1"
+    "deploy": "powershell -ExecutionPolicy Bypass -File scripts/deploy.ps1",
+    "publish:web": "powershell -ExecutionPolicy Bypass -File scripts/publish-web.ps1"
   },
   "private": true
 }

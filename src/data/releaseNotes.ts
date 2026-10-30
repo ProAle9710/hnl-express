@@ -1,4 +1,39 @@
-export const RELEASE_MARKDOWN = `## 1.1.0 (2026-10-30)
+export const RELEASE_MARKDOWN = `## 1.2.1 (2026-10-30)
+
+Panel: barras HIG
+
+### Added
+
+- Gráficos de barras en **Hoy** (método, hora, tipo, etiqueta, volumen, clientes)
+- Animación en vivo mientras no hay datos; al llegar un valor, solo quedan esas barras
+
+### Changed
+
+- Barras planas tipo iOS (píldora 22pt, track gris), paleta amarillo / azul / rojo / navy
+- Sin barras 3D: no encajaban con el resto de la app
+
+## 1.2.0 (2026-10-30)
+
+Panel en vivo y fórmula de ganancia
+
+### Added
+
+- Panel **Hoy** al entrar: atendidos, clientes nuevos y ganancia del día
+- Barras por método de pago; al tocar una se ve el monto
+- El panel se actualiza solo mientras está abierto
+- Varias operaciones en un mismo cálculo
+- Tasas 8 %, 6 % o personalizada, guardadas sin alterar la fórmula
+
+### Changed
+
+- Ganancia: \`(monto COP / valor COP) − (pago al cliente / costo real)\`
+- Redondeo a décimas: \`.26\` o más sube, \`.25\` o menos baja
+- Montos con miles: \`1,000.00\`
+- Métodos: Zelle (Selly), USD efectivo, USD tarjeta, COP transferencia
+- Cada línea se guarda con las claves \`montoCliente\`, \`valorCop\`, \`pagoCliente\`, \`costoReal\`
+- El personal puede leer Firestore; las escrituras siguen en el servidor
+
+## 1.1.0 (2026-10-30)
 
 Ganancias, clientes y login
 

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { Sheet } from "@/components/Sheet";
+import { WritingFrame } from "@/components/WritingFrame";
 import { hig, type } from "@/theme";
 
 type Option = { id: string; label: string };
@@ -19,11 +20,9 @@ export function Select({ label, value, options, onChange }: Props) {
   return (
     <>
       <Pressable accessibilityRole="button" onPress={() => setOpen(true)} style={styles.wrap}>
-        <View style={styles.field}>
-          <View style={styles.face}>
-            <Text style={styles.value}>{current}</Text>
-          </View>
-        </View>
+        <WritingFrame active={open}>
+          <Text style={styles.value}>{current}</Text>
+        </WritingFrame>
         <Text style={styles.label}>{label}</Text>
       </Pressable>
       <Sheet visible={open} onDismiss={() => setOpen(false)} title={label}>
@@ -50,20 +49,6 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 8,
     position: "relative",
-  },
-  field: {
-    height: 48,
-    borderRadius: 14,
-    overflow: "hidden",
-    justifyContent: "center",
-    backgroundColor: "rgba(27,39,68,0.18)",
-  },
-  face: {
-    flex: 1,
-    margin: 1.5,
-    borderRadius: 12.5,
-    backgroundColor: "#FFFFFF",
-    justifyContent: "center",
   },
   value: {
     ...type.body,

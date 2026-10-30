@@ -11,6 +11,7 @@ import { Sheet } from "@/components/Sheet";
 import { WaveBackdrop, WaveWord } from "@/components/WaveBackdrop";
 import { useWebKeyboard } from "@/hooks/useWebKeyboard";
 import { auth } from "@/firebase/client";
+import { emailError, keepEmail, passwordError } from "@/data/validate";
 import { hig, type } from "@/theme";
 
 export function LoginScreen() {
@@ -42,7 +43,9 @@ export function LoginScreen() {
     }
   }
 
-  const ready = email.includes("@") && password.length >= 6;
+  const mailIssue = emailError(email);
+  const passIssue = passwordError(password);
+  const ready = !mailIssue && !passIssue;
 
   const form = (
     <>
@@ -50,9 +53,12 @@ export function LoginScreen() {
         label="Correo"
         value={email}
         onChangeText={setEmail}
+        filter={keepEmail}
+        keyboardType="email-address"
         autoCapitalize="none"
         returnKeyType="next"
         blurOnSubmit={false}
+        error={email ? mailIssue : ""}
         onSubmitEditing={() => passwordRef.current?.focus()}
       />
       <Field
@@ -62,6 +68,7 @@ export function LoginScreen() {
         secureTextEntry
         inputRef={passwordRef}
         returnKeyType="go"
+        error={password ? passIssue : ""}
         onSubmitEditing={() => {
           if (ready && !busy) void submit();
         }}

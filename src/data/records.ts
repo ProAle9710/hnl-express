@@ -10,6 +10,15 @@ export type ClientRecord = {
   createdAt: string;
 };
 
+export type Operacion = {
+  montoCliente: number | null;
+  valorCop: number | null;
+  pagoCliente: number | null;
+  costoReal: number | null;
+  payMethod: string;
+  tasa: string;
+};
+
 export type TxKind = "receipt" | "profit";
 
 export type TxRecord = {
@@ -30,6 +39,7 @@ export type TxRecord = {
   unitCostCurrency: string;
   volumeBand: string;
   tag: string;
+  operaciones: Operacion[];
 };
 
 export type ClientInput = {
@@ -67,6 +77,19 @@ function asClient(id: string, value: unknown): ClientRecord {
   };
 }
 
+function asOperacion(value: unknown): Operacion | null {
+  if (!value || typeof value !== "object") return null;
+  const row = value as Record<string, unknown>;
+  return {
+    montoCliente: money(row.montoCliente),
+    valorCop: money(row.valorCop),
+    pagoCliente: money(row.pagoCliente),
+    costoReal: money(row.costoReal),
+    payMethod: text(row.payMethod),
+    tasa: text(row.tasa),
+  };
+}
+
 function asTx(id: string, value: unknown): TxRecord {
   if (!value || typeof value !== "object") throw new Error(`Transacción dañada: ${id}`);
   const row = value as Record<string, unknown>;
@@ -95,6 +118,12 @@ function asTx(id: string, value: unknown): TxRecord {
     unitCostCurrency: text(row.unitCostCurrency),
     volumeBand: text(row.volumeBand),
     tag: text(row.tag),
+    operaciones: Array.isArray(row.operaciones)
+      ? row.operaciones.flatMap((item) => {
+          const parsed = asOperacion(item);
+          return parsed ? [parsed] : [];
+        })
+      : [],
   };
 }
 

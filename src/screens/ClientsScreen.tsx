@@ -6,6 +6,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useSession } from "@/auth/session";
 import { Button } from "@/components/Button";
 import { Field } from "@/components/Field";
+import { Loader } from "@/components/Loader";
 import { Screen } from "@/components/Screen";
 import { Select } from "@/components/Select";
 import { Sheet } from "@/components/Sheet";
@@ -21,7 +22,18 @@ import {
   type ClientRecord,
   type TxRecord,
 } from "@/data/records";
-import { formatUsd, monthKey, roundMoney } from "@/money";
+import { formatUsd, monthKey, parseAmount, roundMoney } from "@/money";
+import {
+  amountError,
+  keepMoney,
+  keepName,
+  keepNote,
+  keepPhone,
+  keepSearch,
+  nameError,
+  noteError,
+  phoneError,
+} from "@/data/validate";
 import { hig, type } from "@/theme";
 
 const tagOptions = [{ id: "", label: "Sin etiqueta" }, ...STATUS_TAGS.map((tag) => ({ id: tag, label: tag }))];
@@ -38,6 +50,7 @@ export function ClientsScreen() {
   const [vip, setVip] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [editTx, setEditTx] = useState<TxRecord | null>(null);
@@ -57,7 +70,8 @@ export function ClientsScreen() {
       })
       .catch((cause: unknown) => {
         setError(cause instanceof Error ? cause.message : "No se pudieron leer los datos.");
-      });
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   useFocusEffect(
@@ -107,8 +121,15 @@ export function ClientsScreen() {
     setFormOpen(true);
   }
 
+  const nameIssue = nameError(name);
+  const phoneIssue = phoneError(phone);
+  const noteIssue = noteError(note);
+  const chargedIssue = amountError(txCharged);
+  const costIssue = amountError(txCost, "Costo inválido.");
+  const clientReady = !nameIssue && !phoneIssue && !noteIssue;
+
   async function save() {
-    if (!name.trim()) return;
+    if (!clientReady) return;
     setBusy(true);
     try {
       const input = { name, phone, note, tag, vip };
@@ -151,9 +172,9 @@ export function ClientsScreen() {
 
   async function saveTx() {
     if (!editTx) return;
-    const charged = Number(txCharged);
-    const cost = Number(txCost);
-    if (!Number.isFinite(charged) || !Number.isFinite(cost) || editTx.usdRate == null) return;
+    const charged = parseAmount(txCharged);
+    const cost = parseAmount(txCost);
+    if (charged == null || cost == null || editTx.usdRate == null) return;
     const profitUsd = Math.round((charged - cost) * editTx.usdRate * 100) / 100;
     setBusy(true);
     try {
@@ -177,8 +198,9 @@ export function ClientsScreen() {
 
   return (
     <Screen title="Clientes" subtitle={staff?.role === "admin" ? "Administrador" : "Operador"}>
+      {loading ? <Loader /> : (
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        <Field label="Buscar" value={filter} onChangeText={setFilter} />
+        <Field label="Buscar" value={filter} onChangeText={setFilter} filter={keepSearch} />
         <Button label="Nuevo cliente" onPress={beginCreate} />
         {error ? <Text style={styles.error}>{error}</Text> : null}
         {visible.map((client) => (
@@ -257,10 +279,25 @@ export function ClientsScreen() {
           </Pressable>
         ))}
       </ScrollView>
+      )}
       <Sheet visible={formOpen} onDismiss={() => setFormOpen(false)} title={editing ? "Editar cliente" : "Nuevo cliente"}>
-        <Field label="Nombre" value={name} onChangeText={setName} />
-        <Field label="Teléfono" value={phone} onChangeText={setPhone} />
-        <Field label="Nota" value={note} onChangeText={setNote} />
+        <Field
+          label="Nombre"
+          value={name}
+          onChangeText={setName}
+          filter={keepName}
+          autoCapitalize="words"
+          error={name ? nameIssue : ""}
+        />
+        <Field
+          label="Teléfono"
+          value={phone}
+          onChangeText={setPhone}
+          filter={keepPhone}
+          keyboardType="phone-pad"
+          error={phone ? phoneIssue : ""}
+        />
+        <Field label="Nota" value={note} onChangeText={setNote} filter={keepNote} error={note ? noteIssue : ""} />
         <Select label="Etiqueta" value={tag} options={tagOptions} onChange={setTag} />
         <Pressable onPress={() => setVip((current) => !current)} style={styles.vipToggle}>
           <View style={styles.vipFace}>
@@ -270,21 +307,42 @@ export function ClientsScreen() {
         </Pressable>
         <Button
           label={editing ? "Guardar cambios" : "Crear cliente"}
-          disabled={!name.trim() || busy}
+          disabled={!clientReady || busy}
+          loading={busy}
           onPress={() => void save()}
         />
       </Sheet>
       <Sheet visible={editTx != null} onDismiss={() => setEditTx(null)} title="Corregir operación">
-        <Field label="Cobrado" value={txCharged} keyboardType="decimal-pad" onChangeText={setTxCharged} />
-        <Field label="Costo" value={txCost} keyboardType="decimal-pad" onChangeText={setTxCost} />
+        <Field
+          label="Cobrado"
+          value={txCharged}
+          keyboardType="decimal-pad"
+          onChangeText={setTxCharged}
+          filter={keepMoney}
+          error={txCharged ? chargedIssue : ""}
+        />
+        <Field
+          label="Costo"
+          value={txCost}
+          keyboardType="decimal-pad"
+          onChangeText={setTxCost}
+          filter={keepMoney}
+          error={txCost ? costIssue : ""}
+        />
         <Select label="Etiqueta" value={txTag} options={tagOptions} onChange={setTxTag} />
-        <Button label="Guardar corrección" disabled={busy} onPress={() => void saveTx()} />
+        <Button
+          label="Guardar corrección"
+          disabled={busy || Boolean(chargedIssue || costIssue)}
+          loading={busy}
+          onPress={() => void saveTx()}
+        />
       </Sheet>
       <Sheet visible={pendingDelete != null} onDismiss={() => setPendingDelete(null)} title="Confirmar borrado">
         <Text style={styles.meta}>{pendingDelete?.label}</Text>
         <Button
           label="Borrar"
           disabled={busy}
+          loading={busy}
           onPress={() => {
             if (!pendingDelete) return;
             const target = pendingDelete;

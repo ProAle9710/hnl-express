@@ -7,6 +7,7 @@ export type ReceiptStackParamList = {
 };
 
 export type TabParamList = {
+  Panel: undefined;
   Clientes: undefined;
   Comprobante: undefined;
   Ganancias: {
@@ -14,5 +15,4 @@ export type TabParamList = {
     currency?: string;
     transactionId?: string;
   } | undefined;
-  Jornada: undefined;
 };

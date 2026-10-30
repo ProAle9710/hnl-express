@@ -1,9 +1,15 @@
 export const PAY_METHODS = [
-  { id: "USD", label: "USD", currency: "USD" },
-  { id: "COP", label: "Pesos colombianos", currency: "COP" },
-  { id: "Zelle", label: "Zelle", currency: "USD" },
-  { id: "USDT", label: "USDT", currency: "USD" },
-  { id: "CUP", label: "Pesos cubanos", currency: "CUP" },
+  { id: "Zelle (Selly)", label: "Zelle (Selly)", currency: "USD" },
+  { id: "USD Efectivo", label: "USD Efectivo", currency: "USD" },
+  { id: "USD Tarjeta", label: "USD Tarjeta", currency: "USD" },
+  { id: "COP Transferencia", label: "COP Transferencia", currency: "COP" },
+] as const;
+
+export const RATE_OPTIONS = [
+  { id: "", label: "Sin tasa" },
+  { id: "8", label: "8%" },
+  { id: "6", label: "6%" },
+  { id: "custom", label: "Personalizada" },
 ] as const;
 
 export const STATUS_TAGS = ["Pago pendiente", "Seguimiento", "Negocio finalizado", "Deuda"] as const;

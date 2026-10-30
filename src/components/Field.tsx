@@ -1,6 +1,8 @@
-import { useEffect, useState, type Ref } from "react";
+import { useState, type Ref } from "react";
 import { Platform, StyleSheet, Text, TextInput, View } from "react-native";
 
+import { GlyphStrip } from "@/components/GlyphStrip";
+import { WritingFrame } from "@/components/WritingFrame";
 import { hig, type } from "@/theme";
 
 type Props = {
@@ -8,7 +10,7 @@ type Props = {
   value: string;
   onChangeText: (value: string) => void;
   error?: string;
-  keyboardType?: "default" | "decimal-pad";
+  keyboardType?: "default" | "decimal-pad" | "phone-pad" | "email-address";
   autoCapitalize?: "none" | "characters" | "words";
   placeholder?: string;
   secureTextEntry?: boolean;
@@ -16,6 +18,7 @@ type Props = {
   returnKeyType?: "next" | "go" | "done";
   blurOnSubmit?: boolean;
   onSubmitEditing?: () => void;
+  filter?: (value: string) => string;
 };
 
 export function Field({
@@ -31,53 +34,13 @@ export function Field({
   returnKeyType,
   blurOnSubmit,
   onSubmitEditing,
+  filter,
 }: Props) {
   const [writing, setWriting] = useState(false);
-  useEffect(() => {
-    if (Platform.OS !== "web") return;
-    const style = document.getElementById("hnl-field") ?? document.createElement("style");
-    style.id = "hnl-field";
-    style.textContent = `
-      @keyframes hnl-spin {
-        to { transform: rotate(360deg); }
-      }
-      .hnl-field-spin {
-        position: absolute;
-        inset: -80%;
-        background: conic-gradient(
-          #FFCE00 0deg 90deg,
-          #005BA4 90deg 180deg,
-          #E21625 180deg 270deg,
-          #FFFFFF 270deg 360deg
-        );
-        animation: hnl-spin 14s linear infinite;
-      }
-      input, input:focus, [role="button"] {
-        outline: none;
-        border: 0;
-        box-shadow: none;
-        -webkit-appearance: none;
-        appearance: none;
-        -webkit-tap-highlight-color: transparent;
-      }
-    `;
-    if (!style.parentElement) document.head.appendChild(style);
-  }, []);
-
   return (
     <View style={styles.wrap}>
-      <View style={[styles.field, error ? styles.fieldError : null]}>
-        {writing && !error ? (
-          <View
-            pointerEvents="none"
-            ref={(node) => {
-              if (Platform.OS !== "web" || !node) return;
-              (node as unknown as HTMLElement).classList?.add("hnl-field-spin");
-            }}
-            style={styles.spin}
-          />
-        ) : null}
-        <View style={styles.face}>
+      <WritingFrame active={writing} error={Boolean(error)}>
+        <GlyphStrip value={secureTextEntry ? "•".repeat(value.length) : value} />
         <TextInput
           ref={(node) => {
             if (typeof inputRef === "function") inputRef(node);
@@ -88,7 +51,10 @@ export function Field({
           blurOnSubmit={blurOnSubmit}
           onSubmitEditing={onSubmitEditing}
           enterKeyHint={returnKeyType === "next" ? "next" : returnKeyType === "go" ? "go" : undefined}
-          onChangeText={onChangeText}
+          onChangeText={(next) => {
+            setWriting(true);
+            onChangeText(filter ? filter(next) : next);
+          }}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
           autoCorrect={false}
@@ -100,11 +66,10 @@ export function Field({
           underlineColorAndroid="transparent"
           onFocus={() => setWriting(true)}
           onBlur={() => setWriting(false)}
-          style={styles.input}
+          style={[styles.input, Platform.OS === "web" ? styles.ghost : null]}
           accessibilityLabel={label}
         />
-        </View>
-      </View>
+      </WritingFrame>
       <Text style={styles.label}>{label}</Text>
       {error ? <Text style={styles.error}>{error}</Text> : null}
     </View>
@@ -117,28 +82,6 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 8,
     position: "relative",
-  },
-  field: {
-    height: 48,
-    borderRadius: 14,
-    overflow: "hidden",
-    justifyContent: "center",
-    backgroundColor: "rgba(27,39,68,0.18)",
-  },
-  fieldError: {
-    backgroundColor: hig.red,
-  },
-  spin: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: hig.yellow,
-  },
-  face: {
-    flex: 1,
-    margin: 1.5,
-    borderRadius: 12.5,
-    backgroundColor: "#FFFFFF",
-    justifyContent: "center",
-    overflow: "visible",
   },
   label: {
     ...type.caption,
@@ -159,6 +102,9 @@ const styles = StyleSheet.create({
     margin: 0,
     outlineWidth: 0,
     borderWidth: 0,
+  },
+  ghost: {
+    color: "transparent",
   },
   error: {
     ...type.caption,

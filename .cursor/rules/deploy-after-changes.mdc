@@ -1,0 +1,11 @@
+---
+description: Desplegar web tras cada cambio
+alwaysApply: true
+---
+
+Tras terminar cambios de código, exportar y copiar a WEB_ROOT sin que el usuario lo pida:
+
+```
+node node_modules/expo/bin/cli export --platform web
+Copy-Item -Recurse -Force dist\* C:\Users\desarrollo\webhost\www\
+```

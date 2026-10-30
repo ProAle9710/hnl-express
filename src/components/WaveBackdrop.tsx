@@ -221,8 +221,13 @@ export function WaveWord({
 const styles = StyleSheet.create({
   fill: {
     ...StyleSheet.absoluteFill,
+    ...(Platform.OS === "web"
+      ? { position: "fixed" as const, top: 0, left: 0, right: 0, bottom: 0 }
+      : null),
     backgroundColor: "#FFFFFF",
     overflow: "hidden",
+    zIndex: 0,
+    pointerEvents: "none",
   },
   track: {
     position: "absolute",

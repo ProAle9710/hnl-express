@@ -1,5 +1,6 @@
-import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { BrandSpinner } from "@/components/Loader";
 import { hig, type } from "@/theme";
 
 type Props = {
@@ -14,16 +15,10 @@ export function Button({ label, onPress, disabled, tone = "primary", loading = f
   const text = <Text style={tone === "primary" ? styles.primaryText : styles.plainText}>{label}</Text>;
   if (loading) {
     return (
-      <View style={styles.loading}>
-        <View
-          pointerEvents="none"
-          ref={(node) => {
-            if (Platform.OS !== "web" || !node) return;
-            (node as unknown as HTMLElement).classList?.add("hnl-field-spin");
-          }}
-          style={styles.spin}
-        />
-        <View style={styles.loadingFace}>{text}</View>
+      <View style={styles.loading} accessibilityLabel={label}>
+        <View style={styles.loadingFace}>
+          <BrandSpinner size={22} />
+        </View>
       </View>
     );
   }
@@ -82,15 +77,10 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     overflow: "hidden",
     justifyContent: "center",
-  },
-  spin: {
-    ...StyleSheet.absoluteFill,
+    backgroundColor: hig.yellow,
   },
   loadingFace: {
     flex: 1,
-    margin: 1.5,
-    borderRadius: 12.5,
-    backgroundColor: hig.yellow,
     alignItems: "center",
     justifyContent: "center",
   },

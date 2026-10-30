@@ -3,7 +3,6 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { signOut } from "firebase/auth";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { WaveBackdrop } from "@/components/WaveBackdrop";
 import { auth } from "@/firebase/client";
 import { hig, type } from "@/theme";
 
@@ -18,7 +17,6 @@ export function Screen({ title, subtitle, includeTopInset = true, children }: Pr
   const insets = useSafeAreaInsets();
   return (
     <View style={styles.root}>
-      <WaveBackdrop />
     <View style={[styles.frame, { paddingTop: includeTopInset ? insets.top + 8 : 8 }]}>
       <View style={styles.header}>
         <View style={styles.banner}>
@@ -47,13 +45,15 @@ export function Screen({ title, subtitle, includeTopInset = true, children }: Pr
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "transparent",
     alignItems: "center",
   },
   frame: {
     flex: 1,
     width: "100%",
     maxWidth: 960,
+    zIndex: 1,
+    elevation: 1,
   },
   header: {
     flexDirection: "row",
@@ -101,5 +101,6 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     backgroundColor: "#FFFFFF",
     borderRadius: 28,
+    overflow: "hidden",
   },
 });

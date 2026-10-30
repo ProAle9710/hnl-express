@@ -123,7 +123,20 @@ function txFields(body) {
     unitCostCurrency: textField(body.unitCostCurrency, 8),
     volumeBand: textField(body.volumeBand, 24),
     tag: textField(body.tag, 40),
+    operaciones: operacionesField(body.operaciones),
   };
+}
+
+function operacionesField(value) {
+  if (!Array.isArray(value)) return [];
+  return value.slice(0, 20).map((row) => ({
+    montoCliente: numberField(row?.montoCliente),
+    valorCop: numberField(row?.valorCop),
+    pagoCliente: numberField(row?.pagoCliente),
+    costoReal: numberField(row?.costoReal),
+    payMethod: textField(row?.payMethod, 40),
+    tasa: textField(row?.tasa, 16),
+  }));
 }
 
 async function staffOf(request) {

@@ -14,14 +14,18 @@ if (Test-Path .env) {
 if (-not $env:DEPLOY_HOST) { $env:DEPLOY_HOST = "65.109.68.73" }
 if (-not $env:DEPLOY_PATH) { $env:DEPLOY_PATH = "/var/www/hnl" }
 if (-not $env:DEPLOY_DOMAIN) { $env:DEPLOY_DOMAIN = "asdf-883-qwez.duckdns.org" }
-if (-not $env:DEPLOY_USER) { throw "Define DEPLOY_USER en .env" }
+if (-not $env:DEPLOY_USER) { $env:DEPLOY_USER = "root" }
+if (-not $env:DEPLOY_USER) {
+  throw "Falta DEPLOY_USER. En .env pon: DEPLOY_USER=root  (pasos: docs/DEPLOY.md)"
+}
+$ssh = @("-o", "BatchMode=yes", "-o", "ConnectTimeout=15", "-o", "StrictHostKeyChecking=accept-new")
 
 pnpm install --frozen-lockfile
 pnpm exec expo export --platform web
 
-ssh "$($env:DEPLOY_USER)@$($env:DEPLOY_HOST)" "mkdir -p '$($env:DEPLOY_PATH)'"
-scp -r dist/. "$($env:DEPLOY_USER)@$($env:DEPLOY_HOST):$($env:DEPLOY_PATH)/"
-scp deploy/Caddyfile "$($env:DEPLOY_USER)@$($env:DEPLOY_HOST):/tmp/hnl.Caddyfile"
-ssh "$($env:DEPLOY_USER)@$($env:DEPLOY_HOST)" "sudo mkdir -p /etc/caddy/sites && sudo cp /tmp/hnl.Caddyfile /etc/caddy/sites/hnl.caddy && sudo caddy validate --config /etc/caddy/Caddyfile && sudo systemctl reload caddy"
+ssh @ssh "$($env:DEPLOY_USER)@$($env:DEPLOY_HOST)" "mkdir -p '$($env:DEPLOY_PATH)'"
+scp @ssh -r dist/. "$($env:DEPLOY_USER)@$($env:DEPLOY_HOST):$($env:DEPLOY_PATH)/"
+scp @ssh deploy/Caddyfile "$($env:DEPLOY_USER)@$($env:DEPLOY_HOST):/tmp/hnl.Caddyfile"
+ssh @ssh "$($env:DEPLOY_USER)@$($env:DEPLOY_HOST)" "sudo mkdir -p /etc/caddy/sites && sudo cp /tmp/hnl.Caddyfile /etc/caddy/sites/hnl.caddy && sudo caddy validate --config /etc/caddy/Caddyfile && sudo systemctl reload caddy"
 
 Write-Host "Publicado en https://$($env:DEPLOY_DOMAIN)"

@@ -1,8 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { BrandSpinner } from "@/components/Loader";
+import { WritingFrame } from "@/components/WritingFrame";
 import { Sheet } from "@/components/Sheet";
 import { listClients, type ClientRecord } from "@/data/records";
+import { keepSearch } from "@/data/validate";
 import { hig, type } from "@/theme";
 
 type Props = {
@@ -14,36 +17,63 @@ export function ClientSelect({ clientId, onChange }: Props) {
   const [clients, setClients] = useState<ClientRecord[]>([]);
   const [error, setError] = useState("");
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     listClients()
       .then(setClients)
       .catch((cause: unknown) => {
         setError(cause instanceof Error ? cause.message : "No se pudieron leer los clientes.");
-      });
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const current = clients.find((client) => client.id === clientId);
+  const visible = useMemo(() => {
+    const term = query.trim().toLowerCase();
+    if (!term) return clients;
+    return clients.filter(
+      (client) =>
+        client.name.toLowerCase().includes(term) || client.phone.toLowerCase().includes(term),
+    );
+  }, [clients, query]);
 
   return (
     <>
-      <Pressable accessibilityRole="button" onPress={() => setOpen(true)} style={styles.wrap}>
-        <View style={styles.field}>
-          <View style={styles.face}>
+      <Pressable accessibilityRole="button" disabled={loading} onPress={() => setOpen(true)} style={styles.wrap}>
+        <WritingFrame active={open}>
+          {loading ? (
+            <View style={styles.spin}>
+              <BrandSpinner size={22} />
+            </View>
+          ) : (
             <Text style={styles.value}>{current?.name ?? "Elegir"}</Text>
-          </View>
-        </View>
+          )}
+        </WritingFrame>
         <Text style={styles.label}>Cliente</Text>
       </Pressable>
       {error ? <Text style={styles.error}>{error}</Text> : null}
-      <Sheet visible={open} onDismiss={() => setOpen(false)} title="Cliente">
+      <Sheet
+        visible={open}
+        onDismiss={() => {
+          setOpen(false);
+          setQuery("");
+        }}
+        title="Cliente"
+        maxHeight="50%"
+        query={query}
+        onQueryChange={(value) => setQuery(keepSearch(value))}
+      >
         {clients.length === 0 ? <Text style={styles.hint}>Crea un cliente primero.</Text> : null}
-        {clients.map((client) => (
+        {clients.length > 0 && visible.length === 0 ? <Text style={styles.hint}>Sin coincidencias.</Text> : null}
+        {visible.map((client) => (
           <Pressable
             key={client.id}
             onPress={() => {
               onChange(client.id);
               setOpen(false);
+              setQuery("");
             }}
             style={styles.option}
           >
@@ -62,25 +92,12 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     position: "relative",
   },
-  field: {
-    height: 48,
-    borderRadius: 14,
-    overflow: "hidden",
-    justifyContent: "center",
-    backgroundColor: "rgba(27,39,68,0.18)",
-  },
-  face: {
-    flex: 1,
-    margin: 1.5,
-    borderRadius: 12.5,
-    backgroundColor: "#FFFFFF",
-    justifyContent: "center",
-  },
   value: {
     ...type.body,
     color: hig.navy,
     paddingHorizontal: 14,
   },
+  spin: { flex: 1, alignItems: "center", justifyContent: "center" },
   label: {
     ...type.caption,
     position: "absolute",
