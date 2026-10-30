@@ -1,5 +1,6 @@
 import { type ReactNode } from "react";
-import { StyleSheet, Text, useWindowDimensions } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useKeyboardState } from "react-native-keyboard-controller";
 import { Modal, Portal } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -14,12 +15,24 @@ type Props = {
   children: ReactNode;
   scrim?: boolean;
   maxHeight?: `${number}%`;
+  side?: "bottom" | "end";
+  closable?: boolean;
 };
 
-export function Sheet({ visible, onDismiss, title, children, scrim = true, maxHeight = "62%" }: Props) {
+export function Sheet({
+  visible,
+  onDismiss,
+  title,
+  children,
+  scrim = true,
+  maxHeight = "62%",
+  side = "bottom",
+  closable = false,
+}: Props) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const wide = width >= 720;
+  const dockEnd = wide && side === "end";
   const nativeKeyboard = useKeyboardState((state) => state.height);
   const webKeyboard = useWebKeyboard();
   const keyboard = wide ? 0 : Math.max(nativeKeyboard, webKeyboard);
@@ -31,22 +44,29 @@ export function Sheet({ visible, onDismiss, title, children, scrim = true, maxHe
         onDismiss={onDismiss}
         dismissable={Boolean(onDismiss)}
         theme={scrim ? undefined : { colors: { backdrop: "transparent" } }}
-        style={[
-          styles.overlay,
-          wide ? styles.overlayWide : null,
-          scrim ? null : styles.clear,
-        ]}
+        style={[styles.overlay, dockEnd ? styles.overlayEnd : null, scrim ? null : styles.clear]}
         contentContainerStyle={[
           styles.sheet,
-          wide ? styles.sheetWide : null,
+          wide && side === "bottom" ? styles.sheetWide : null,
+          dockEnd ? styles.sheetEnd : null,
           {
             paddingBottom: Math.max(insets.bottom, 20) + keyboard,
-            maxHeight: keyboard > 0 ? "100%" : maxHeight,
+            maxHeight: keyboard > 0 && !dockEnd ? "100%" : maxHeight,
+            height: dockEnd ? maxHeight : undefined,
           },
         ]}
       >
-        <Text style={styles.title}>{title}</Text>
-        {children}
+        <View style={styles.bar}>
+          <Text style={styles.title}>{title}</Text>
+          {closable && onDismiss ? (
+            <Pressable accessibilityRole="button" accessibilityLabel="Cerrar" onPress={onDismiss} style={styles.close}>
+              <Ionicons name="close" size={22} color={hig.navy} />
+            </Pressable>
+          ) : null}
+        </View>
+        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.body}>
+          {children}
+        </ScrollView>
       </Modal>
     </Portal>
   );
@@ -57,30 +77,52 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     zIndex: 20,
   },
+  overlayEnd: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "flex-end",
+  },
   clear: {
     backgroundColor: "transparent",
-  },
-  overlayWide: {
-    justifyContent: "center",
-    padding: 24,
   },
   sheet: {
     backgroundColor: "#FFFFFF",
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     paddingHorizontal: 20,
-    paddingTop: 10,
+    paddingTop: 12,
     width: "100%",
     maxHeight: "62%",
   },
   sheetWide: {
-    maxWidth: 440,
+    maxWidth: 560,
     alignSelf: "center",
-    borderRadius: 28,
+  },
+  sheetEnd: {
+    width: 420,
+    maxWidth: "42%",
+    alignSelf: "flex-end",
+    borderTopRightRadius: 0,
+    borderBottomLeftRadius: 28,
+  },
+  bar: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
   },
   title: {
     ...type.title2,
     color: hig.label,
-    marginBottom: 12,
+    flex: 1,
+  },
+  close: {
+    minHeight: 44,
+    minWidth: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  body: {
+    gap: 4,
+    paddingBottom: 8,
   },
 });

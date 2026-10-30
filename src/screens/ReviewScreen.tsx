@@ -14,7 +14,7 @@ import { parseAmount } from "@/money";
 import type { ReceiptStackParamList, TabParamList } from "@/navigation/types";
 import { exportReceipt } from "@/receipt/exportReceipt";
 import { receiptHtml } from "@/receipt/template";
-import { hig, type } from "@/theme";
+import { type } from "@/theme";
 import type { ReceiptDraft } from "@/types";
 import { extractReceipt, VisionConfigError } from "@/vision/extract";
 
@@ -95,6 +95,11 @@ export function ReviewScreen({ route }: Props) {
         cost: null,
         usdRate: null,
         profitUsd: null,
+        payMethod: "",
+        unitCost: null,
+        unitCostCurrency: "",
+        volumeBand: "",
+        tag: "",
       });
       await exportReceipt(receiptHtml(normalized, new Date()));
       tabNavigation.navigate("Ganancias", {
@@ -112,41 +117,42 @@ export function ReviewScreen({ route }: Props) {
   }
 
   return (
-    <Screen includeTopInset={false} subtitle={status}>
+    <Screen title="Datos" includeTopInset={false} subtitle={status}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <ClientSelect clientId={clientId} onChange={setClientId} />
-        <View style={styles.card}>
-          <Field
-            label="Cuenta destino"
-            value={draft.destinationAccount}
-            onChangeText={(destinationAccount) => patch({ destinationAccount })}
-            error={draft.destinationAccount ? errors.destinationAccount : ""}
-          />
-          <View style={styles.line} />
-          <Field
-            label="Monto"
-            value={draft.amount}
-            keyboardType="decimal-pad"
-            onChangeText={(amount) => patch({ amount })}
-            error={draft.amount ? errors.amount : ""}
-          />
-          <View style={styles.line} />
-          <Field
-            label="Moneda"
-            value={draft.currency}
-            autoCapitalize="characters"
-            onChangeText={(currency) => patch({ currency: currency.toUpperCase() })}
-            error={draft.currency ? errors.currency : ""}
-          />
-          <View style={styles.line} />
-          <Field
-            label="ID de transacción"
-            value={draft.transactionId}
-            onChangeText={(transactionId) => patch({ transactionId })}
-            error={draft.transactionId ? errors.transactionId : ""}
-          />
+        <Field
+          label="Cuenta destino"
+          value={draft.destinationAccount}
+          onChangeText={(destinationAccount) => patch({ destinationAccount })}
+          error={draft.destinationAccount ? errors.destinationAccount : ""}
+        />
+        <View style={styles.pair}>
+          <View style={styles.half}>
+            <Field
+              label="Monto"
+              value={draft.amount}
+              keyboardType="decimal-pad"
+              onChangeText={(amount) => patch({ amount })}
+              error={draft.amount ? errors.amount : ""}
+            />
+          </View>
+          <View style={styles.half}>
+            <Field
+              label="Moneda"
+              value={draft.currency}
+              autoCapitalize="characters"
+              onChangeText={(currency) => patch({ currency: currency.toUpperCase() })}
+              error={draft.currency ? errors.currency : ""}
+            />
+          </View>
         </View>
-        {!valid ? <Text style={styles.note}>Completa los cuatro campos para emitir.</Text> : null}
+        <Field
+          label="ID"
+          value={draft.transactionId}
+          onChangeText={(transactionId) => patch({ transactionId })}
+          error={draft.transactionId ? errors.transactionId : ""}
+        />
+        {!valid ? <Text style={styles.note}>Completa los datos para emitir.</Text> : null}
         <Button label="Generar y compartir" disabled={!valid || busy} onPress={() => void publish()} />
       </ScrollView>
     </Screen>
@@ -155,20 +161,12 @@ export function ReviewScreen({ route }: Props) {
 
 const styles = StyleSheet.create({
   scroll: {
-    gap: 12,
     paddingBottom: 32,
   },
-  card: {
-    backgroundColor: hig.cell,
-    borderRadius: hig.radius,
-    overflow: "hidden",
-  },
-  line: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: hig.separator,
-    marginLeft: 16,
-  },
+  pair: { flexDirection: "row" },
+  half: { flex: 1 },
   note: {
     ...type.footnote,
+    marginVertical: 8,
   },
 });

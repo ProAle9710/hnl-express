@@ -5,6 +5,8 @@ export type ClientRecord = {
   name: string;
   phone: string;
   note: string;
+  tag: string;
+  vip: boolean;
   createdAt: string;
 };
 
@@ -23,7 +25,22 @@ export type TxRecord = {
   cost: number | null;
   usdRate: number | null;
   profitUsd: number | null;
+  payMethod: string;
+  unitCost: number | null;
+  unitCostCurrency: string;
+  volumeBand: string;
+  tag: string;
 };
+
+export type ClientInput = {
+  name: string;
+  phone: string;
+  note: string;
+  tag: string;
+  vip: boolean;
+};
+
+export type TxInput = Omit<TxRecord, "id" | "createdAt">;
 
 function text(value: unknown, fallback = ""): string {
   return typeof value === "string" ? value : fallback;
@@ -44,6 +61,8 @@ function asClient(id: string, value: unknown): ClientRecord {
     name: row.name,
     phone: text(row.phone),
     note: text(row.note),
+    tag: text(row.tag),
+    vip: row.vip === true,
     createdAt: row.createdAt,
   };
 }
@@ -71,6 +90,11 @@ function asTx(id: string, value: unknown): TxRecord {
     cost: money(row.cost),
     usdRate: money(row.usdRate),
     profitUsd: money(row.profitUsd),
+    payMethod: text(row.payMethod),
+    unitCost: money(row.unitCost),
+    unitCostCurrency: text(row.unitCostCurrency),
+    volumeBand: text(row.volumeBand),
+    tag: text(row.tag),
   };
 }
 
@@ -84,14 +108,11 @@ export async function listClients(): Promise<ClientRecord[]> {
   });
 }
 
-export async function createClient(input: { name: string; phone: string; note: string }): Promise<void> {
+export async function createClient(input: ClientInput): Promise<void> {
   await api("/api/clients", { method: "POST", body: JSON.stringify(input) });
 }
 
-export async function updateClient(
-  id: string,
-  input: { name: string; phone: string; note: string },
-): Promise<void> {
+export async function updateClient(id: string, input: ClientInput): Promise<void> {
   await api(`/api/clients/${id}`, { method: "PATCH", body: JSON.stringify(input) });
 }
 
@@ -109,8 +130,12 @@ export async function listTransactions(): Promise<TxRecord[]> {
   });
 }
 
-export async function createTransaction(input: Omit<TxRecord, "id" | "createdAt">): Promise<void> {
+export async function createTransaction(input: TxInput): Promise<void> {
   await api("/api/transactions", { method: "POST", body: JSON.stringify(input) });
+}
+
+export async function updateTransaction(id: string, input: TxInput): Promise<void> {
+  await api(`/api/transactions/${id}`, { method: "PATCH", body: JSON.stringify(input) });
 }
 
 export async function removeTransaction(id: string): Promise<void> {

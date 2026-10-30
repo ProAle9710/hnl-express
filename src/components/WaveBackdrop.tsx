@@ -104,7 +104,17 @@ function readWaves(): WaveSample[] {
   });
 }
 
-export function WaveWord({ text, style, hidden }: { text: string; style?: TextStyle; hidden?: boolean }) {
+export function WaveWord({
+  text,
+  style,
+  hidden,
+  layer = "1",
+}: {
+  text: string;
+  style?: TextStyle;
+  hidden?: boolean;
+  layer?: string;
+}) {
   const ref = useRef<Text>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -115,7 +125,7 @@ export function WaveWord({ text, style, hidden }: { text: string; style?: TextSt
     const canvas = document.createElement("canvas");
     canvas.style.position = "fixed";
     canvas.style.pointerEvents = "none";
-    canvas.style.zIndex = "1";
+    canvas.style.zIndex = layer;
     canvas.style.transition = "opacity 180ms ease";
     canvas.style.opacity = hidden ? "0" : "1";
     canvasRef.current = canvas;
@@ -194,7 +204,7 @@ export function WaveWord({ text, style, hidden }: { text: string; style?: TextSt
       canvas.remove();
       canvasRef.current = null;
     };
-  }, [text]);
+  }, [text, layer]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

@@ -28,6 +28,19 @@ const types = {
   ".map": "application/json",
 };
 
+function cacheControl(file) {
+  const name = file.replaceAll("\\", "/");
+  const ext = extname(file);
+  if (ext === ".html" || name.endsWith("/index.html")) return "no-cache";
+  if (/\.[0-9a-f]{8,}\./i.test(name) || name.includes("/_expo/static/") || name.includes("/assets/")) {
+    return "public, max-age=31536000, immutable";
+  }
+  if (ext === ".png" || ext === ".ico" || ext === ".ttf" || ext === ".woff2" || ext === ".js" || ext === ".css") {
+    return "public, max-age=86400";
+  }
+  return "no-cache";
+}
+
 function serveWeb(request, response, pathname) {
   const relative = pathname === "/" ? "index.html" : pathname.replace(/^\/+/, "");
   let file = resolve(webRoot, relative);
@@ -35,7 +48,10 @@ function serveWeb(request, response, pathname) {
     file = join(webRoot, "index.html");
   }
   if (!existsSync(file)) return false;
-  response.writeHead(200, { "Content-Type": types[extname(file)] ?? "application/octet-stream" });
+  response.writeHead(200, {
+    "Content-Type": types[extname(file)] ?? "application/octet-stream",
+    "Cache-Control": cacheControl(file),
+  });
   if (request.method === "HEAD") {
     response.end();
     return true;
@@ -76,6 +92,38 @@ async function readJson(request) {
 function textField(value, max) {
   if (typeof value !== "string") return "";
   return value.trim().slice(0, max);
+}
+
+function numberField(value) {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function clientFields(body) {
+  return {
+    name: textField(body.name, 120),
+    phone: textField(body.phone, 40),
+    note: textField(body.note, 500),
+    tag: textField(body.tag, 40),
+    vip: body.vip === true,
+  };
+}
+
+function txFields(body) {
+  return {
+    destinationAccount: textField(body.destinationAccount, 120),
+    amount: textField(body.amount, 40),
+    currency: textField(body.currency, 12),
+    transactionId: textField(body.transactionId, 80),
+    charged: numberField(body.charged),
+    cost: numberField(body.cost),
+    usdRate: numberField(body.usdRate),
+    profitUsd: numberField(body.profitUsd),
+    payMethod: textField(body.payMethod, 24),
+    unitCost: numberField(body.unitCost),
+    unitCostCurrency: textField(body.unitCostCurrency, 8),
+    volumeBand: textField(body.volumeBand, 24),
+    tag: textField(body.tag, 40),
+  };
 }
 
 async function staffOf(request) {
@@ -122,15 +170,13 @@ const server = createServer(async (request, response) => {
     }
     if (request.method === "POST" && url.pathname === "/api/clients") {
       const body = await readJson(request);
-      const name = textField(body.name, 120);
-      if (!name) {
+      const fields = clientFields(body);
+      if (!fields.name) {
         send(response, 400, { error: "Nombre requerido." }, cors);
         return;
       }
       const ref = await db.collection("clients").add({
-        name,
-        phone: textField(body.phone, 40),
-        note: textField(body.note, 500),
+        ...fields,
         createdAt: new Date().toISOString(),
       });
       send(response, 201, { id: ref.id }, cors);
@@ -139,16 +185,12 @@ const server = createServer(async (request, response) => {
     const clientMatch = url.pathname.match(/^\/api\/clients\/([^/]+)$/);
     if (clientMatch && request.method === "PATCH") {
       const body = await readJson(request);
-      const name = textField(body.name, 120);
-      if (!name) {
+      const fields = clientFields(body);
+      if (!fields.name) {
         send(response, 400, { error: "Nombre requerido." }, cors);
         return;
       }
-      await db.doc(`clients/${clientMatch[1]}`).update({
-        name,
-        phone: textField(body.phone, 40),
-        note: textField(body.note, 500),
-      });
+      await db.doc(`clients/${clientMatch[1]}`).update(fields);
       send(response, 204, null, cors);
       return;
     }
@@ -181,20 +223,30 @@ const server = createServer(async (request, response) => {
         clientId,
         kind: body.kind,
         createdAt: new Date().toISOString(),
-        destinationAccount: textField(body.destinationAccount, 120),
-        amount: textField(body.amount, 40),
-        currency: textField(body.currency, 3),
-        transactionId: textField(body.transactionId, 80),
-        charged: typeof body.charged === "number" ? body.charged : null,
-        cost: typeof body.cost === "number" ? body.cost : null,
-        usdRate: typeof body.usdRate === "number" ? body.usdRate : null,
-        profitUsd: typeof body.profitUsd === "number" ? body.profitUsd : null,
+        ...txFields(body),
         createdBy: staff.uid,
       });
       send(response, 201, { id: ref.id }, cors);
       return;
     }
     const txMatch = url.pathname.match(/^\/api\/transactions\/([^/]+)$/);
+    if (txMatch && request.method === "PATCH") {
+      const body = await readJson(request);
+      const clientId = textField(body.clientId, 128);
+      if (!clientId || (body.kind !== "receipt" && body.kind !== "profit")) {
+        send(response, 400, { error: "Transacción inválida." }, cors);
+        return;
+      }
+      await db.doc(`transactions/${txMatch[1]}`).update({
+        clientId,
+        kind: body.kind,
+        ...txFields(body),
+        updatedAt: new Date().toISOString(),
+        updatedBy: staff.uid,
+      });
+      send(response, 204, null, cors);
+      return;
+    }
     if (txMatch && request.method === "DELETE") {
       if (staff.role !== "admin") {
         send(response, 403, { error: "Solo un administrador puede borrar." }, cors);

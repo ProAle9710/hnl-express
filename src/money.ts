@@ -29,3 +29,14 @@ export function localDayKey(iso: string): string {
 export function todayKey(now = new Date()): string {
   return localDayKey(now.toISOString());
 }
+
+export function monthKey(iso: string): string {
+  return localDayKey(iso).slice(0, 7);
+}
+
+export function weekKey(iso: string): string {
+  const date = new Date(iso);
+  const offset = (date.getDay() + 6) % 7;
+  date.setDate(date.getDate() - offset);
+  return localDayKey(date.toISOString());
+}

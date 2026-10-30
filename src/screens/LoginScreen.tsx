@@ -1,11 +1,12 @@
 import { useRef, useState } from "react";
-import { Image, StyleSheet, Text, TextInput, useWindowDimensions, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, TextInput, useWindowDimensions, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "@/components/Button";
 import { Field } from "@/components/Field";
+import { ReleaseNotes } from "@/components/ReleaseNotes";
 import { Sheet } from "@/components/Sheet";
 import { WaveBackdrop, WaveWord } from "@/components/WaveBackdrop";
 import { useWebKeyboard } from "@/hooks/useWebKeyboard";
@@ -19,11 +20,13 @@ export function LoginScreen() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [notes, setNotes] = useState(false);
   const passwordRef = useRef<TextInput>(null);
   const restHeight = useRef(height);
   const wide = width >= 720;
   const webKeyboard = useWebKeyboard();
   const keyboardOpen = !wide && webKeyboard > 80;
+  const hideWords = keyboardOpen || notes;
   if (!keyboardOpen) restHeight.current = height;
   const layoutHeight = restHeight.current;
 
@@ -65,6 +68,11 @@ export function LoginScreen() {
       />
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <Button label={busy ? "Entrando…" : "Continuar"} disabled={!ready || busy} loading={busy} onPress={() => void submit()} />
+      {wide ? null : (
+        <Pressable accessibilityRole="button" onPress={() => setNotes(true)} style={styles.notesMobile}>
+          <WaveWord hidden={hideWords} layer="25" text="Notas de versión" style={styles.notesLabel} />
+        </Pressable>
+      )}
     </>
   );
 
@@ -86,16 +94,16 @@ export function LoginScreen() {
       />
       <View
         nativeID="hnl-brand-copy"
-        style={[styles.brandCopy, { opacity: keyboardOpen ? 0 : 1, transform: [{ translateY: keyboardOpen ? -8 : 0 }] }]}
+        style={[styles.brandCopy, { opacity: hideWords ? 0 : 1, transform: [{ translateY: hideWords ? -8 : 0 }] }]}
       >
-        <WaveWord hidden={keyboardOpen} text="HNL" style={[styles.mark, { fontSize: band * 0.16, lineHeight: band * 0.17, marginTop: band * 0.03 }]} />
+        <WaveWord hidden={hideWords} text="HNL" style={[styles.mark, { fontSize: band * 0.16, lineHeight: band * 0.17, marginTop: band * 0.03 }]} />
         <WaveWord
-          hidden={keyboardOpen}
+          hidden={hideWords}
           text="XPRESS"
           style={[styles.word, { fontSize: band * 0.075, lineHeight: band * 0.09, letterSpacing: band * 0.012, marginTop: 0 }]}
         />
         <WaveWord
-          hidden={keyboardOpen}
+          hidden={hideWords}
           text="Acceso interno"
           style={[styles.tag, { marginTop: band * 0.02, fontSize: band * 0.045, color: hig.blue }]}
         />
@@ -114,6 +122,13 @@ export function LoginScreen() {
             <Text style={styles.cardTitle}>Entrar</Text>
             {form}
           </View>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setNotes(true)}
+            style={[styles.notesDesktop, { bottom: insets.bottom + 20, right: 24 }]}
+          >
+            <WaveWord hidden={notes} layer="6" text="Notas de versión" style={styles.notesLabel} />
+          </Pressable>
         </View>
       ) : (
         <View style={[styles.mobile, { paddingTop: insets.top }]}>
@@ -123,6 +138,16 @@ export function LoginScreen() {
           </Sheet>
         </View>
       )}
+      <Sheet
+        visible={notes}
+        onDismiss={() => setNotes(false)}
+        title="Notas de versión"
+        maxHeight="80%"
+        side="end"
+        closable
+      >
+        <ReleaseNotes />
+      </Sheet>
     </View>
   );
 }
@@ -160,4 +185,16 @@ const styles = StyleSheet.create({
   word: { ...type.title2, color: hig.blue, letterSpacing: 8, marginTop: 4, fontSize: 28, textAlign: "center" },
   tag: { ...type.footnote, color: "#5C6770", marginTop: 12 },
   error: { ...type.footnote, color: hig.red, marginBottom: 8 },
+  notesDesktop: {
+    position: "absolute",
+    minHeight: 44,
+    justifyContent: "center",
+  },
+  notesMobile: {
+    alignSelf: "flex-end",
+    minHeight: 44,
+    justifyContent: "center",
+    paddingTop: 8,
+  },
+  notesLabel: { ...type.footnote, fontWeight: "600" },
 });

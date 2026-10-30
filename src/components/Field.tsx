@@ -113,7 +113,7 @@ export function Field({
 
 const styles = StyleSheet.create({
   wrap: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 0,
     paddingTop: 12,
     paddingBottom: 8,
     position: "relative",
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
     ...type.caption,
     position: "absolute",
     top: 5,
-    left: 28,
+    left: 12,
     paddingHorizontal: 4,
     backgroundColor: "#FFFFFF",
     color: hig.navy,

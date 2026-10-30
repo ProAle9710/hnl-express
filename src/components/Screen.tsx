@@ -1,8 +1,10 @@
 import type { ReactNode } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { signOut } from "firebase/auth";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { WaveBackdrop } from "@/components/WaveBackdrop";
+import { auth } from "@/firebase/client";
 import { hig, type } from "@/theme";
 
 type Props = {
@@ -18,12 +20,24 @@ export function Screen({ title, subtitle, includeTopInset = true, children }: Pr
     <View style={styles.root}>
       <WaveBackdrop />
     <View style={[styles.frame, { paddingTop: includeTopInset ? insets.top + 8 : 8 }]}>
-      {title ? (
-        <Text style={styles.title} accessibilityRole="header">
-          {title}
-        </Text>
-      ) : null}
-      {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+      <View style={styles.header}>
+        <View style={styles.banner}>
+          {title ? (
+            <Text style={styles.title} accessibilityRole="header">
+              {title}
+            </Text>
+          ) : null}
+          {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Cerrar sesión"
+          onPress={() => void signOut(auth)}
+          style={styles.logout}
+        >
+          <Text style={styles.logoutText}>Cerrar sesión</Text>
+        </Pressable>
+      </View>
       <View style={styles.body}>{children}</View>
     </View>
     </View>
@@ -41,14 +55,42 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: 960,
   },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 12,
+  },
+  banner: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    minHeight: 44,
+    justifyContent: "center",
+  },
   title: {
-    ...type.largeTitle,
-    paddingHorizontal: hig.margin,
+    ...type.title2,
   },
   subtitle: {
     ...type.footnote,
-    paddingHorizontal: hig.margin,
-    marginTop: 4,
+    color: hig.navy,
+    marginTop: 2,
+  },
+  logout: {
+    minHeight: 44,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    justifyContent: "center",
+  },
+  logoutText: {
+    ...type.footnote,
+    color: hig.red,
+    fontWeight: "600",
+    fontSize: 13,
+    lineHeight: 18,
   },
   body: {
     flex: 1,

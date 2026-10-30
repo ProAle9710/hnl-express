@@ -65,7 +65,7 @@ export function RootNavigator() {
         <Text style={{ color: hig.label, fontSize: 17, marginBottom: 12 }}>
           {error || "Este usuario no está habilitado."}
         </Text>
-        <Button label="Salir" onPress={() => void signOut(auth)} />
+        <Button label="Cerrar sesión" onPress={() => void signOut(auth)} />
       </View>
     );
   }

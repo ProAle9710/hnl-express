@@ -107,8 +107,9 @@ export function CaptureScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   preview: {
-    height: 220,
-    borderRadius: hig.radius,
+    flex: 1,
+    minHeight: 220,
+    borderRadius: 14,
     backgroundColor: hig.cell,
     alignItems: "center",
     justifyContent: "center",
