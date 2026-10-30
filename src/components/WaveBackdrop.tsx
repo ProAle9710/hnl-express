@@ -52,12 +52,10 @@ export function WaveBackdrop() {
             element.dataset.hnlWave = layer.color;
             element.dataset.hnlBase = String(height * (wide ? layer.desktop : layer.mobile));
             element.dataset.hnlAmp = String(wide ? layer.amplitude : layer.mobileAmplitude);
-            element.dataset.hnlPhase = String(wide ? 0 : layer.phase);
+            element.dataset.hnlPhase = String(layer.phase);
             element.style.animation = `${layer.duration}ms linear infinite hnl-wave`;
-            if (!wide) {
-              element.style.animationDelay = `${layer.delay}ms`;
-              element.style.animationDirection = layer.reverse ? "reverse" : "normal";
-            }
+            element.style.animationDelay = `${layer.delay}ms`;
+            element.style.animationDirection = layer.reverse ? "reverse" : "normal";
           }}
           style={[styles.track, { width: tile * 2, height }]}
         >
@@ -69,7 +67,7 @@ export function WaveBackdrop() {
                   height,
                   height * (wide ? layer.desktop : layer.mobile),
                   wide ? layer.amplitude : layer.mobileAmplitude,
-                  wide ? 0 : layer.phase,
+                  layer.phase,
                 )}
                 fill={layer.color}
                 opacity={layer.opacity}
@@ -88,10 +86,10 @@ type WaveSample = {
   base: number;
   amp: number;
   phase: number;
-  blue: boolean;
+  yellow: boolean;
 };
 
-function readWaves(tile: number): WaveSample[] {
+function readWaves(): WaveSample[] {
   return [...document.querySelectorAll<HTMLElement>("[data-hnl-wave]")].map((track) => {
     const rect = track.getBoundingClientRect();
     const color = track.dataset.hnlWave;
@@ -101,13 +99,14 @@ function readWaves(tile: number): WaveSample[] {
       base: Number(track.dataset.hnlBase),
       amp: Number(track.dataset.hnlAmp),
       phase: Number(track.dataset.hnlPhase),
-      blue: color === "#005BA4" || color === "#003F78",
+      yellow: color === "#FFCE00" || color === "#C99700",
     };
   });
 }
 
-export function WaveWord({ text, style }: { text: string; style?: TextStyle }) {
+export function WaveWord({ text, style, hidden }: { text: string; style?: TextStyle; hidden?: boolean }) {
   const ref = useRef<Text>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
     if (Platform.OS !== "web") return;
@@ -116,7 +115,10 @@ export function WaveWord({ text, style }: { text: string; style?: TextStyle }) {
     const canvas = document.createElement("canvas");
     canvas.style.position = "fixed";
     canvas.style.pointerEvents = "none";
-    canvas.style.zIndex = "5";
+    canvas.style.zIndex = "1";
+    canvas.style.transition = "opacity 180ms ease";
+    canvas.style.opacity = hidden ? "0" : "1";
+    canvasRef.current = canvas;
     document.body.appendChild(canvas);
     const context = canvas.getContext("2d");
     if (!context) return;
@@ -153,13 +155,13 @@ export function WaveWord({ text, style }: { text: string; style?: TextStyle }) {
         for (let index = 0; index < mask.length; index += 1) mask[index] = stamp[index * 4 + 3] > 16 ? 1 : 0;
       }
       const tile = Math.max(Math.ceil(window.innerWidth), 320);
-      const waves = readWaves(tile);
+      const waves = readWaves();
       const pixels = context.createImageData(width, height);
       for (let index = 0; index < (mask?.length ?? 0); index += 1) {
         if (!mask?.[index]) continue;
         const x = rect.left + (index % width) / ratio;
         const y = rect.top + Math.floor(index / width) / ratio;
-        let blue = false;
+        let yellowText = false;
         for (let waveIndex = waves.length - 1; waveIndex >= 0; waveIndex -= 1) {
           const wave = waves[waveIndex];
           const localX = x - wave.left;
@@ -168,11 +170,11 @@ export function WaveWord({ text, style }: { text: string; style?: TextStyle }) {
             wave.base +
             Math.sin(((xInSvg + wave.phase * tile) / (tile * 2)) * Math.PI * 4 + wave.phase * Math.PI * 2) * wave.amp;
           if (y - wave.top < crest) continue;
-          blue = wave.blue;
+          yellowText = !wave.yellow;
           break;
         }
         const offset = index * 4;
-        if (blue) {
+        if (yellowText) {
           pixels.data[offset] = 255;
           pixels.data[offset + 1] = 206;
           pixels.data[offset + 2] = 0;
@@ -190,11 +192,17 @@ export function WaveWord({ text, style }: { text: string; style?: TextStyle }) {
     return () => {
       cancelAnimationFrame(frame);
       canvas.remove();
+      canvasRef.current = null;
     };
   }, [text]);
 
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (canvas) canvas.style.opacity = hidden ? "0" : "1";
+  }, [hidden]);
+
   return (
-    <Text ref={ref} style={[style, { color: "transparent" }]}>
+    <Text ref={ref} style={[style, { color: "transparent", opacity: hidden ? 0 : 1 }]}>
       {text}
     </Text>
   );

@@ -8,6 +8,7 @@ import { Button } from "@/components/Button";
 import { Field } from "@/components/Field";
 import { Sheet } from "@/components/Sheet";
 import { WaveBackdrop, WaveWord } from "@/components/WaveBackdrop";
+import { useWebKeyboard } from "@/hooks/useWebKeyboard";
 import { auth } from "@/firebase/client";
 import { hig, type } from "@/theme";
 
@@ -19,7 +20,12 @@ export function LoginScreen() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const passwordRef = useRef<TextInput>(null);
+  const restHeight = useRef(height);
   const wide = width >= 720;
+  const webKeyboard = useWebKeyboard();
+  const keyboardOpen = !wide && webKeyboard > 80;
+  if (!keyboardOpen) restHeight.current = height;
+  const layoutHeight = restHeight.current;
 
   async function submit() {
     setBusy(true);
@@ -62,12 +68,12 @@ export function LoginScreen() {
     </>
   );
 
-  const band = height * 0.52 - insets.top;
+  const band = layoutHeight * 0.52 - insets.top;
   const logoSize = Math.min(band * 0.46, width * 0.42);
   const brand = wide ? (
     <View style={styles.brand}>
       <Image source={require("../../assets/logo-primary.png")} style={styles.logo} accessibilityLabel="HNL Xpress" />
-      <Text style={styles.mark}>HNL</Text>
+      <WaveWord text="HNL" style={styles.mark} />
       <WaveWord text="XPRESS" style={styles.word} />
       <WaveWord text="Acceso interno" style={[styles.tag, { color: hig.blue }]} />
     </View>
@@ -78,9 +84,22 @@ export function LoginScreen() {
         style={{ width: logoSize, height: logoSize, borderRadius: logoSize / 2 }}
         accessibilityLabel="HNL Xpress"
       />
-      <Text style={[styles.mark, { fontSize: band * 0.16, lineHeight: band * 0.17, marginTop: band * 0.03 }]}>HNL</Text>
-      <WaveWord text="XPRESS" style={[styles.word, { fontSize: band * 0.075, lineHeight: band * 0.09, letterSpacing: band * 0.012, marginTop: 0 }]} />
-      <WaveWord text="Acceso interno" style={[styles.tag, { marginTop: band * 0.02, fontSize: band * 0.045, color: hig.blue }]} />
+      <View
+        nativeID="hnl-brand-copy"
+        style={[styles.brandCopy, { opacity: keyboardOpen ? 0 : 1, transform: [{ translateY: keyboardOpen ? -8 : 0 }] }]}
+      >
+        <WaveWord hidden={keyboardOpen} text="HNL" style={[styles.mark, { fontSize: band * 0.16, lineHeight: band * 0.17, marginTop: band * 0.03 }]} />
+        <WaveWord
+          hidden={keyboardOpen}
+          text="XPRESS"
+          style={[styles.word, { fontSize: band * 0.075, lineHeight: band * 0.09, letterSpacing: band * 0.012, marginTop: 0 }]}
+        />
+        <WaveWord
+          hidden={keyboardOpen}
+          text="Acceso interno"
+          style={[styles.tag, { marginTop: band * 0.02, fontSize: band * 0.045, color: hig.blue }]}
+        />
+      </View>
     </View>
   );
 
@@ -130,6 +149,7 @@ const styles = StyleSheet.create({
   cardTitle: { ...type.title2, marginBottom: 12 },
   brand: { alignItems: "flex-start", maxWidth: 420 },
   brandMobile: { width: "100%", alignItems: "center", justifyContent: "center" },
+  brandCopy: { alignItems: "center" },
   logo: {
     width: 132,
     height: 132,

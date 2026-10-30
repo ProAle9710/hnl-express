@@ -90,6 +90,18 @@ export function configureIosWebDocument(): void {
     html, body, #root {
       height: 100%;
       height: 100dvh;
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+    @media (max-width: 719px) {
+      body {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+      }
+    }
+    #hnl-brand-copy {
+      transition: opacity 180ms ease, transform 180ms ease;
     }
   `;
   document.head.appendChild(style);
